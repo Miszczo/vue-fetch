@@ -59,8 +59,12 @@ watch(() => responseData.value, (newData, oldData) => {
 </script>
 
 <template>
-    <div class="players-wrapper" v-for="playerData in responseData">
-        <Player :playerData="playerData" />
+    <div class="players-wrapper">
+        <Player 
+            v-for="playerData in responseData" 
+            :key="playerData.id" 
+            :playerData="playerData" 
+        />
     </div>
     <button @click="appendData()">append</button>
 </template>
