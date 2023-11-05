@@ -1,72 +1,72 @@
 <script setup>
-import { reactive, ref, onMounted, watch  } from 'vue';
+import { reactive, ref, onMounted, watch } from 'vue';
 import Player from './Player.vue';
 
 /**
  * refs
  */
 
-const apiUrl = ref('https://www.balldontlie.io/api/v1/players');
 const responseData = ref();
+const apiUrl = ref('https://www.balldontlie.io/api/v1/players');
 
-/**
- * Reactives
- */
-// Parametry zapytania (np. limit wyników)
-const queryParams = reactive({
-    per_page: 10,  // Liczba wyników na stronę
-    page: 0,       // Numer strony
+const queryParams = ref({
+    per_page: 10,
+    page: 1,
 });
 
-// Konstruowanie URL z parametrami
-const urlWithParams = new URL(apiUrl.value);
-const searchParams = new URLSearchParams(queryParams);
-urlWithParams.search = searchParams;
-
-/**
- * reactives
- */
-const movies = reactive({})
 
 /**
  * methods
  */
-await function getData(url) {
-    try{
+async function getData(url) {
+    console.log(url)
+    try {
         const response = await fetch(url);
-        
-        if(!response.ok) {
+
+        if (!response.ok) {
             throw new Error(`HTTP error! Stats: ${response.status}`)
         }
-    }
-    fetch(url)
-        .then(response => response.json())
-        .then(response => {
-            responseData.value = response;
 
-        }
-        )
-        .catch(error => console.log("Error: ", error))
+        const data = await response.json();
+        responseData.value = data.data;
+        console.log(responseData.value)
+    } catch (error) {
+        console.log(error)
+    }
 }
 
-getData(urlWithParams)
+function createUrl() {
+    const urlWithParams = new URL(apiUrl.value);
+    const searchParams = new URLSearchParams(queryParams.value);
+    urlWithParams.search = searchParams;
 
+    return urlWithParams;
+}
+
+function appendData() {
+    queryParams.value.page += 1;
+    getData(createUrl())
+}
 
 onMounted(() => {
-
+    getData(createUrl())
 })
+
 watch(() => responseData.value, (newData, oldData) => {
-    console.log(newData); // Wywoła się po zmianie responseData.value
+    responseData.value = newData
 });
 
 </script>
 
 <template>
-    <!-- <div v-for="playerData in responseData.value">
-            <span>{{ playerData }}</span>
-        </div> -->
-    ============
-    <pre>{{ responseData }}</pre>
+    <div class="players-wrapper" v-for="playerData in responseData">
+        <Player :playerData="playerData" />
+    </div>
+    <button @click="appendData()">append</button>
 </template>
 
-<style scoped></style>
+<style scoped>
+.players-wrapper {
+    max-width: 800px;
+}
+</style>
