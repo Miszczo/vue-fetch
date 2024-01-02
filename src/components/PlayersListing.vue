@@ -1,35 +1,39 @@
 <script setup>
-import { reactive, ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import Player from './Player.vue';
+import Paginator from './Paginator.vue'
 
 /**
  * refs
  */
 
-const responseData = ref();
-const apiUrl = ref('https://www.balldontlie.io/api/v1/players');
-
-const queryParams = ref({
-    per_page: 10,
-    page: 1,
-});
+const responseData = ref([]),
+    apiUrl = ref('https://www.balldontlie.io/api/v1/players'),
+    totalPages = ref(0),
+    currentPage = ref(1),
+    queryParams = ref({
+        per_page: 10,
+        page: 1,
+    }),
+    paginationData = ref(null)
 
 
 /**
  * methods
  */
-async function getData(url) {
-    console.log(url)
+async function getData() {
     try {
-        const response = await fetch(url);
+        const urlWithParams = createUrl();
+        const response = await fetch(urlWithParams);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Stats: ${response.status}`)
         }
 
         const data = await response.json();
-        responseData.value = data.data;
-        console.log(responseData.value)
+        responseData.value = [...data.data];
+        totalPages.value = data.meta.total_pages;
+        updatePaginationData();
     } catch (error) {
         console.log(error)
     }
@@ -43,30 +47,29 @@ function createUrl() {
     return urlWithParams;
 }
 
-function appendData() {
-    queryParams.value.page += 1;
-    getData(createUrl())
+function handleModelUpdate(newModelValue) {
+    console.log("Model Updated in Parent:", newModelValue);
+}
+
+function updatePaginationData() {
+    paginationData.value = {
+        currentPage: currentPage.value,
+        totalPages: totalPages.value
+    }
 }
 
 onMounted(() => {
-    getData(createUrl())
+    getData()
 })
-
-watch(() => responseData.value, (newData, oldData) => {
-    responseData.value = newData
-});
 
 </script>
 
 <template>
+    <Paginator :modelValue="paginationData" @update:modelValue="handleModelUpdate" />
+    page: {{ paginationData }}
     <div class="players-wrapper">
-        <Player 
-            v-for="playerData in responseData" 
-            :key="playerData.id" 
-            :playerData="playerData" 
-        />
+        <Player v-for="playerData in responseData" :key="playerData.id" :playerData="playerData" />
     </div>
-    <button @click="appendData()">append</button>
 </template>
 
 <style scoped>

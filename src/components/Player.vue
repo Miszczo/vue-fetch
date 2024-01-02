@@ -7,6 +7,7 @@ const props = defineProps({
     }
 })
 
+
 const { first_name, last_name } = props.playerData
 const { full_name: teamName } = props.playerData.team
 </script>
