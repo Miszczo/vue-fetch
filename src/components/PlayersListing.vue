@@ -14,9 +14,7 @@ const responseData = ref([]),
     queryParams = ref({
         per_page: 10,
         page: 1,
-    }),
-    paginationData = ref(null)
-
+    });
 
 /**
  * methods
@@ -33,7 +31,7 @@ async function getData() {
         const data = await response.json();
         responseData.value = [...data.data];
         totalPages.value = data.meta.total_pages;
-        updatePaginationData();
+
     } catch (error) {
         console.log(error)
     }
@@ -48,14 +46,9 @@ function createUrl() {
 }
 
 function handleModelUpdate(newModelValue) {
-    console.log("Model Updated in Parent:", newModelValue);
-}
-
-function updatePaginationData() {
-    paginationData.value = {
-        currentPage: currentPage.value,
-        totalPages: totalPages.value
-    }
+    currentPage.value = newModelValue;
+    queryParams.value.page = currentPage.value;
+    getData();
 }
 
 onMounted(() => {
@@ -65,8 +58,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <Paginator :modelValue="paginationData" @update:modelValue="handleModelUpdate" />
-    page: {{ paginationData }}
+    <Paginator v-model="currentPage" :total-pages="totalPages" @update:modelValue="handleModelUpdate" />
     <div class="players-wrapper">
         <Player v-for="playerData in responseData" :key="playerData.id" :playerData="playerData" />
     </div>

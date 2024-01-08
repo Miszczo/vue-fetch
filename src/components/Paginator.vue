@@ -1,13 +1,15 @@
 <script setup>
-import { ref, defineEmits, watch } from 'vue';
+import { ref, defineEmits, watch, onMounted, nextTick } from 'vue';
 
-const props = defineProps(['modelValue']),
+const props = defineProps({
+    modelValue: Number,
+    totalPages: Number
+}),
     emit = defineEmits(),
-    currentPage = ref(props.modelValue?.currentPage || 1),
-    totalPages = ref(props.modelValue?.totalPages || 0);
+    currentPage = ref(props.modelValue?.currentPage || 1);
 
 function nextPage() {
-    if (currentPage.value < totalPages.value) {
+    if (currentPage.value < props.totalPages) {
         currentPage.value++;
         updateModel();
     }
@@ -21,18 +23,25 @@ function previousPage() {
 }
 
 function updateModel() {
-    emit('update:modelValue', { currentPage: currentPage.value, totalPages: totalPages.value });
+    emit('update:modelValue', currentPage);
 }
 
-watch(() => props.modelValue, (newModelValue) => {
-    currentPage.value = newModelValue.currentPage;
-    totalPages.value = newModelValue.totalPages;
-});
+// @TODO
+function setPaginatorNumbers() {
+    console.log(props.totalPages)
+}
+
+onMounted(() => {
+    nextTick(()=> {
+        setPaginatorNumbers()
+    })
+})
+
 </script>
 
 <template>
+    {{ totalPages }}
     <button @click="previousPage()">Previous page</button>
     <button @click="nextPage()">Next page</button>
-
-    <button v-for="item in 20"></button>
+    <button v-for="item in 10"></button>
 </template>
