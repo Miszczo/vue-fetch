@@ -51,6 +51,11 @@ function handleModelUpdate(newModelValue) {
     getData();
 }
 
+function append() {
+    totalPages.value++
+    console.log('in parent' ,totalPages.value)
+}
+
 onMounted(() => {
     getData()
 })
@@ -62,6 +67,7 @@ onMounted(() => {
     <div class="players-wrapper">
         <Player v-for="playerData in responseData" :key="playerData.id" :playerData="playerData" />
     </div>
+    <button @click="append">append</button>
 </template>
 
 <style scoped>
