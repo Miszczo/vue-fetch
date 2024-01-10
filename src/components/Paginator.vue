@@ -1,13 +1,26 @@
 <script setup>
 import { ref, watch, onMounted, nextTick, onUpdated } from 'vue';
 
+/**
+* props
+*/
+
 const props = defineProps({
     modelValue: Number,
     totalPages: Number
-}),
-    emit = defineEmits(),
+});
+
+/**
+ * refs
+ */
+
+const emit = defineEmits(),
     currentPage = ref(props.modelValue?.currentPage || 1),
     paginationNumbers = ref([]);
+
+/**
+* methods
+*/
 
 function nextPage() {
     if (currentPage.value < props.totalPages) {
@@ -28,23 +41,34 @@ function goToPage(number) {
     updateModel();
 }
 
+// @TODO
+function checkPaginationButtons() {
+    console.log(currentPage.value)
+    if(currentPage.value > (paginationNumbers.value.length * 0.9)) {
+        console.log("higher")
+    }
+    // console.log(paginationNumbers.value.length * 0.75)
+    // console.log(paginationNumbers.value.indexOf(currentPage.value))
+    // console.log(paginationNumbers.value.includes(currentPage.value))
+}
+
 function updateModel() {
+    checkPaginationButtons()
     emit('update:modelValue', currentPage);
 }
 
 // @TODO - napisać funkcjonalnośc paginacji któa wylistuje liczby od 2 do 10, ale  im dalej będziemy przewijać to te liczby będą się zmieniać
-function setPaginatorNumbers(number) {
-    for (let i = 2; i < number; i++) {
-        paginationNumbers.value.push(i)
+function setPaginatorNumbers(numerOfButtons) {
+    for (let i = 0; i < numerOfButtons; i++) {
+        paginationNumbers.value.push(i + 2)
     }
 }
+/**
+ * hooks
+ */
 
-onMounted(()=> {
-    setPaginatorNumbers(11)
-})
-
-onUpdated(() => {
-    // Reset values when the page is changed from outside of this component
+onMounted(() => {
+    setPaginatorNumbers(9)
 })
 
 </script>
