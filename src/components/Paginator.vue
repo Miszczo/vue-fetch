@@ -16,6 +16,7 @@ const props = defineProps({
 
 const emit = defineEmits(),
     currentPage = ref(props.modelValue?.currentPage || 1),
+    paginationStartNumber = ref(1),
     paginationNumbers = ref([]);
 
 /**
@@ -41,27 +42,27 @@ function goToPage(number) {
     updateModel();
 }
 
-// @TODO
-function checkPaginationButtons() {
-    console.log(currentPage.value)
-    if(currentPage.value > (paginationNumbers.value.length * 0.9)) {
-        console.log("higher")
+
+function updatePaginationNumbers() {
+    if (currentPage.value == paginationNumbers.value[paginationNumbers.value.length - 1]) {
+        setPaginatorNumbers(9, paginationNumbers.value[paginationNumbers.value.length - 1] + 1);
+    } else if (currentPage.value == paginationNumbers.value[0]) {
+        const newStartingNumber = Math.max(paginationStartNumber.value, paginationNumbers.value[0] - 9);
+        setPaginatorNumbers(9, newStartingNumber);
     }
-    // console.log(paginationNumbers.value.length * 0.75)
-    // console.log(paginationNumbers.value.indexOf(currentPage.value))
-    // console.log(paginationNumbers.value.includes(currentPage.value))
+}
+
+
+function setPaginatorNumbers(numberOfButtons = 9, startingNumber = paginationStartNumber.value) {
+    paginationNumbers.value = [];
+    for (let i = 0; i < numberOfButtons; i++) {
+        paginationNumbers.value.push(startingNumber + i);
+    }
 }
 
 function updateModel() {
-    checkPaginationButtons()
+    updatePaginationNumbers();
     emit('update:modelValue', currentPage);
-}
-
-// @TODO - napisać funkcjonalnośc paginacji któa wylistuje liczby od 2 do 10, ale  im dalej będziemy przewijać to te liczby będą się zmieniać
-function setPaginatorNumbers(numerOfButtons) {
-    for (let i = 0; i < numerOfButtons; i++) {
-        paginationNumbers.value.push(i + 2)
-    }
 }
 /**
  * hooks
@@ -76,6 +77,6 @@ onMounted(() => {
 <template>
     <button @click="previousPage()">Previous page</button>
     <button v-for="item in paginationNumbers" @click="goToPage(item)" :key="item">{{ item }}</button>
-    <button @click="goToPage(totalPages)">Last page</button>
     <button @click="nextPage()">Next page</button>
+    <button @click="goToPage(totalPages)">Last page</button>
 </template>
