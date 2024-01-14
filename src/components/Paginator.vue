@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, nextTick, onUpdated } from 'vue';
+import { ref, watch } from 'vue';
 
 /**
 * props
@@ -10,73 +10,87 @@ const props = defineProps({
     totalPages: Number
 });
 
+
 /**
  * refs
  */
 
 const emit = defineEmits(),
-    currentPage = ref(props.modelValue?.currentPage || 1),
-    paginationStartNumber = ref(1),
-    paginationNumbers = ref([]);
+    currentPageRef = ref(props.modelValue?.currentPage || 1),
+    totalPagesRef = ref(0),
+    paginationNumbersRef = ref([]);
+
+/**
+ * watch
+ */
+
+watch(() => props.totalPages, (newTotalPages) => {
+    totalPagesRef.value = newTotalPages;
+    generatePaginationNumbersArray(newTotalPages);
+    createPaginationNumberButtons();
+});
+
 
 /**
 * methods
 */
 
 function nextPage() {
-    if (currentPage.value < props.totalPages) {
-        currentPage.value++;
+    if (currentPageRef.value < props.totalPages) {
+        currentPageRef.value++;
         updateModel();
     }
 }
 
 function previousPage() {
-    if (currentPage.value > 1) {
-        currentPage.value--;
+    if (currentPageRef.value > 1) {
+        currentPageRef.value--;
         updateModel();
     }
 }
 
 function goToPage(number) {
-    currentPage.value = number;
+    currentPageRef.value = number;
     updateModel();
 }
 
-
-function updatePaginationNumbers() {
-    if (currentPage.value == paginationNumbers.value[paginationNumbers.value.length - 1]) {
-        setPaginatorNumbers(9, paginationNumbers.value[paginationNumbers.value.length - 1] + 1);
-    } else if (currentPage.value == paginationNumbers.value[0]) {
-        const newStartingNumber = Math.max(paginationStartNumber.value, paginationNumbers.value[0] - 9);
-        setPaginatorNumbers(9, newStartingNumber);
-    }
+function generatePaginationNumbersArray(n) {
+    paginationNumbersRef.value = Array.from({ length: n }, (_, index) => index + 1);
 }
 
+function createPaginationNumberButtons() {
+    paginationNumbersRef.value = paginationNumbersRef.value.slice(0, 9);
+}
 
-function setPaginatorNumbers(numberOfButtons = 9, startingNumber = paginationStartNumber.value) {
-    paginationNumbers.value = [];
-    for (let i = 0; i < numberOfButtons; i++) {
-        paginationNumbers.value.push(startingNumber + i);
-    }
+function checkAndGenerateNewPagination() {
+    const newStart = Math.max(1, currentPageRef.value - 4);
+    const newEnd = Math.min(newStart + 8, totalPagesRef.value);
+    paginationNumbersRef.value = Array.from({ length: 9 }, (_, index) => newStart + index).slice(0, newEnd - newStart + 1);
 }
 
 function updateModel() {
-    updatePaginationNumbers();
-    emit('update:modelValue', currentPage);
+    checkAndGenerateNewPagination()
+    emit('update:modelValue', currentPageRef);
 }
-/**
- * hooks
- */
-
-onMounted(() => {
-    setPaginatorNumbers(9)
-})
 
 </script>
 
 <template>
     <button @click="previousPage()">Previous page</button>
-    <button v-for="item in paginationNumbers" @click="goToPage(item)" :key="item">{{ item }}</button>
+    <button v-if="currentPageRef > 5" @click="goToPage(1)">First page</button>
+    <button v-for="item in paginationNumbersRef" @click="goToPage(item)" :class="{ 'is-active': item == currentPageRef }"
+        :key="item">
+        {{ item }}
+    </button>
     <button @click="nextPage()">Next page</button>
-    <button @click="goToPage(totalPages)">Last page</button>
+    <button @click="goToPage(totalPagesRef)">Last page</button>
 </template>
+
+<style lang="scss">
+button {
+    &.is-active {
+        background-color: red;
+        pointer-events: none;
+    }
+}
+</style>
