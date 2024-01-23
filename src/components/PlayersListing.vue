@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import Player from './Player.vue';
 import Paginator from './Paginator.vue'
