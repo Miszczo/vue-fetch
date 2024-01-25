@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import Player from './Player.vue';
 import Paginator from './Paginator.vue'
 
@@ -7,10 +7,16 @@ import Paginator from './Paginator.vue'
  * refs
  */
 
-const responseData = ref([]),
+ interface PlayerDataType {
+  id: number;
+  first_name: string;
+  last_name: string
+}
+
+const responseData = ref<Array<PlayerDataType>>([]),
     apiUrl = ref('https://www.balldontlie.io/api/v1/players'),
-    totalPages = ref(0),
-    currentPage = ref(1),
+    totalPages = ref<number>(10),
+    currentPage = ref<number>(1),
     queryParams = ref({
         per_page: 10,
         page: 1,
@@ -30,7 +36,7 @@ async function getData() {
 
         const data = await response.json();
         responseData.value = [...data.data];
-        totalPages.value = data.meta.total_pages;
+        // totalPages.value = data.meta.total_pages;
 
     } catch (error) {
         console.log(error)
@@ -39,13 +45,14 @@ async function getData() {
 
 function createUrl() {
     const urlWithParams = new URL(apiUrl.value);
-    const searchParams = new URLSearchParams(queryParams.value);
-    urlWithParams.search = searchParams;
+    Object.entries(queryParams.value).forEach(([key, value]) => {
+        urlWithParams.searchParams.set(key, String(value));
+    })
 
     return urlWithParams;
 }
 
-function handleModelUpdate(newModelValue) {
+function handleModelUpdate(newModelValue: number) {
     currentPage.value = newModelValue;
     queryParams.value.page = currentPage.value;
     getData();
